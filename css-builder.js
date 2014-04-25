@@ -105,6 +105,7 @@ define(['require', './normalize'], function(req, normalize) {
 
   var layerBuffer = [];
   var cssBuffer = {};
+  var excludeModuleRegEx = undefined;
 
   cssAPI.load = function(name, req, load, _config) {
 
@@ -140,7 +141,17 @@ define(['require', './normalize'], function(req, normalize) {
     if (moduleName.match(absUrlRegEx))
       return;
 
-    layerBuffer.push(cssBuffer[moduleName]);
+    if (!excludeModuleRegEx) {
+      var pattern = config.moduleExclusionRegExpFromCSS;
+      if (pattern)
+        excludeModuleRegEx = typeof pattern == "string" ?
+          new RegExp(pattern) : pattern;
+    }
+    var exclude = excludeModuleRegEx && excludeModuleRegEx.test(moduleName);
+    if (exclude)
+      console.log('Excluding CSS module: ' + moduleName);
+    else
+      layerBuffer.push(cssBuffer[moduleName]);
     
     if (config.buildCSS != false)
     write.asModule(pluginName + '!' + moduleName, 'define(function(){})');
